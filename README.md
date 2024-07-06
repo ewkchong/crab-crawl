@@ -12,7 +12,7 @@ The main goal is to establish a web service that will efficiently crawl the web 
 - **Scalable**: An arbitrary number of instances of this service can be employed to enhance performance under high load
 
 # Design
-
+![architecture](https://github.com/ewkchong/crab-crawl/assets/82353320/24595135-338a-4d89-b241-bfd51f8d660d)
 # Quick Start
 To begin, you can run a single instance of the web service with the following command:
 ```bash
