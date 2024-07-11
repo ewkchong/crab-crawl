@@ -20,3 +20,7 @@ cargo run --bin crab-crawl
 ```
 This will start the server on localhost:3000.
 
+### Send an Example Query
+```bash
+curl 
+```

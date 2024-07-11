@@ -1,30 +1,38 @@
+mod crawler;
 mod parser;
 mod product;
+
+use product::Product;
+use serde::Deserialize;
 
 use axum::{routing::get, Json, Router};
 use http::StatusCode;
 
-use serde::Deserialize;
+async fn parse_url(Json(payload): Json<ParseQuery>) -> Result<Json<Product>, StatusCode> {
+    let document = match crawler::get_html(payload.url).await {
+        Ok(html) => html,
+        Err(_) => return Err(StatusCode::INTERNAL_SERVER_ERROR)
+    };
 
-async fn parse(Json(payload): Json<ParseQuery>) -> StatusCode {
-    println!("{}, {}", payload.url, payload.typ);
+    let product = parser::example::process_single(document).unwrap();
 
-    StatusCode::OK
+    Ok(Json(product))
 }
 
 #[derive(Deserialize)]
 struct ParseQuery {
-    url: String,
-    typ: String
+    url: String
 }
 
 #[tokio::main]
 async fn main() {
     let app = Router::new()
         .route("/", get(|| async { "Hello World!" }))
-        .route("/parse", get(parse));
+        .route("/parse_url", get(parse_url));
         
+    let port = 3000;
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", port)).await.unwrap();
+    println!("Listening on localhost:{}...", port);
     axum::serve(listener, app).await.unwrap();
 }

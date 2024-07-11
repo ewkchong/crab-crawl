@@ -1,45 +1,38 @@
+pub mod example {
 
-pub mod parser {
-    // pub mod amazon {
-    //     fn process_single(html: scraper::Html) -> crate::product::Product {
-    //
-    //     }
-    // }
-    pub mod example {
-        use std::error::Error;
+    use scraper::Selector;
 
-        use scraper::Selector;
+    use crate::product::Product;
 
-        use crate::product::Product;
+    pub fn process_single(html: scraper::Html) -> Option<Product> {
+        let prod_selector = match Selector::parse("div.product") {
+            Ok(selector) => selector,
+            Err(_) => return None,
+        };
 
-        fn process_single(html: scraper::Html) -> Result<Product, Box<dyn Error>> {
-            let prod_selector = Selector::parse("div.product")?;
+        let prod_element = html.select(&prod_selector).next().unwrap();
 
-            let prod_element = html.select(&prod_selector).next().unwrap();
+        let imgsrc = prod_element
+            .select(&Selector::parse("img").unwrap())
+            .next()
+            .and_then(|img| img.value().attr("src"))
+            .map(str::to_owned);
 
-            let imgsrc = prod_element
-                .select(&Selector::parse("img").unwrap())
-                .next()
-                .and_then(|img| img.value().attr("href"))
-                .map(str::to_owned);
+        let title = prod_element
+            .select(&Selector::parse("h1.product_title").unwrap())
+            .next()
+            .map(|h1| h1.text().collect::<String>());
 
-            let title = prod_element
-                .select(&Selector::parse("h1.product_title").unwrap())
-                .next()
-                .map(|h1| h1.text().collect::<String>());
+        let price = prod_element
+            .select(&Selector::parse("p.price>span.amount>bdi").unwrap())
+            .next()
+            .map(|bdi| bdi.text().collect::<String>());
 
-            let price = prod_element
-                .select(&Selector::parse("p.price>span.amount>bdi").unwrap())
-                .next()
-                .map(|bdi| bdi.text().collect::<String>());
-
-            Ok(Product {
-                url: "".to_string(),
-                imgsrc: imgsrc.unwrap(),
-                title: title.unwrap(),
-                price: price.unwrap()
-            })
-        }
+        Some(Product {
+            url: "".to_string(),
+            imgsrc: imgsrc.unwrap_or("".to_string()),
+            title: title.unwrap_or("".to_string()),
+            price: price.unwrap_or("".to_string()),
+        })
     }
 }
-
